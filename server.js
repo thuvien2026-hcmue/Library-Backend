@@ -12,16 +12,16 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // ROUTES
-import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import postRoutes from "./routes/postRoutes.js";
-import pageRoutes from "./routes/pageRoutes.js";
-import pageblockRoutes from "./routes/pageblockRoutes.js";
-import mediaRoutes from "./routes/mediaRoutes.js";
-import formResultRoutes from "./routes/formResultRoutes.js";
-import vanbanRoutes from "./routes/vanbanRoutes.js";
-import trendbookRoutes from "./routes/trendBookRoutes.js";
-import histatsRoutes from "./routes/histatsRoutes.js";
+import authRoutes from "./routes_supa/authRoutes.js";
+import userRoutes from "./routes_supa/userRoutes.js";
+import postRoutes from "./routes_supa/postRoutes.js";
+import pageRoutes from "./routes_supa/pageRoutes.js";
+import pageblockRoutes from "./routes_supa/pageblockRoutes.js";
+import mediaRoutes from "./routes_supa/mediaRoutes.js";
+import formResultRoutes from "./routes_supa/formResultRoutes.js";
+import vanbanRoutes from "./routes_supa/vanbanRoutes.js";
+import trendbookRoutes from "./routes_supa/trendBookRoutes.js";
+import histatsRoutes from "./routes_supa/histatsRoutes.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
