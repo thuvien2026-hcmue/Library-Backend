@@ -21,7 +21,6 @@ import mediaRoutes from "./routes_supa/mediaRoutes.js";
 import formResultRoutes from "./routes_supa/formResultRoutes.js";
 import vanbanRoutes from "./routes_supa/vanbanRoutes.js";
 import trendbookRoutes from "./routes_supa/trendBookRoutes.js";
-import histatsRoutes from "./routes_supa/histatsRoutes.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -32,7 +31,6 @@ app.use("/api/form-results", formResultRoutes);
 app.use("/api/vanban", vanbanRoutes);
 app.use("/api/trend-books", trendbookRoutes);
 
-app.use("/api/histats", histatsRoutes);
 
 
 // Media Route
