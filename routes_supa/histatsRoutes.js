@@ -4,6 +4,8 @@ const router = express.Router();
 const CACHE_TTL_MS = 30_000;
 let cache = { at: 0, data: null };
 
+console.log(html.slice(0, 1000));
+
 function extractSockToken(html) {
   // rộng hơn: match sockTOKEN = '...' hoặc "..."
   const m = html.match(/sockTOKEN\s*=\s*['"]([^'"]+)['"]/i);
