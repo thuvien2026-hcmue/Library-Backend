@@ -1,4 +1,4 @@
-import { pool } from "../db.js";
+import { supabase } from "../supabase.js";
 
 /* =====================================================
    SUBMIT FORM (PUBLIC)
@@ -27,24 +27,27 @@ export const submitFormResult = async (req, res) => {
 
     const userAgent = req.headers["user-agent"] || null;
 
-    const [result] = await pool.query(
-      `INSERT INTO form_results
-        (page_id, post_id, page_slug, post_slug, form_data, ip_address, user_agent)
-       VALUES (?,?,?,?,?,?,?)`,
-      [
-        page_id,
-        post_id,
-        page_slug,
-        post_slug,
-        JSON.stringify(form_data),
-        ip,
-        userAgent,
-      ]
-    );
+    const { data, error } = await supabase
+      .from("form_results")
+      .insert([
+        {
+          page_id,
+          post_id,
+          page_slug,
+          post_slug,
+          form_data, // Supabase tự stringify JSON
+          ip_address: ip,
+          user_agent: userAgent,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (error) throw error;
 
     res.json({
       success: true,
-      id: result.insertId,
+      id: data.id,
     });
   } catch (err) {
     console.error("submitFormResult error:", err);
@@ -56,50 +59,36 @@ export const submitFormResult = async (req, res) => {
    ADMIN – LIST ALL
 ===================================================== */
 export const getAllFormResults = async (req, res) => {
-  const [rows] = await pool.query(
-    `SELECT * FROM form_results ORDER BY created_at DESC`
-  );
-  res.json(rows);
+  const { data, error } = await supabase
+    .from("form_results")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 };
 
 /* =====================================================
    ADMIN – PAGES WITH FORM RESULTS
 ===================================================== */
 export const getPagesWithFormResults = async (req, res) => {
-  const [rows] = await pool.query(`
-    SELECT 
-      p.id,
-      p.name,
-      p.slug,
-      COUNT(fr.id) AS total
-    FROM form_results fr
-    JOIN page p ON p.id = fr.page_id
-    WHERE fr.page_id IS NOT NULL
-    GROUP BY p.id
-    ORDER BY total DESC
-  `);
+  const { data, error } = await supabase.rpc("pages_with_form_results");
 
-  res.json(rows);
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 };
 
 /* =====================================================
    ADMIN – POSTS WITH FORM RESULTS
 ===================================================== */
 export const getPostsWithFormResults = async (req, res) => {
-  const [rows] = await pool.query(`
-    SELECT 
-      po.id,
-      po.name,
-      po.slug,
-      COUNT(fr.id) AS total
-    FROM form_results fr
-    JOIN post po ON po.id = fr.post_id
-    WHERE fr.post_id IS NOT NULL
-    GROUP BY po.id
-    ORDER BY total DESC
-  `);
+  const { data, error } = await supabase.rpc("posts_with_form_results");
 
-  res.json(rows);
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 };
 
 /* =====================================================
@@ -108,14 +97,15 @@ export const getPostsWithFormResults = async (req, res) => {
 export const getFormResultsByPage = async (req, res) => {
   const { pageId } = req.params;
 
-  const [rows] = await pool.query(
-    `SELECT * FROM form_results
-     WHERE page_id = ?
-     ORDER BY created_at DESC`,
-    [pageId]
-  );
+  const { data, error } = await supabase
+    .from("form_results")
+    .select("*")
+    .eq("page_id", pageId)
+    .order("created_at", { ascending: false });
 
-  res.json(rows);
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 };
 
 /* =====================================================
@@ -124,14 +114,15 @@ export const getFormResultsByPage = async (req, res) => {
 export const getFormResultsByPost = async (req, res) => {
   const { postId } = req.params;
 
-  const [rows] = await pool.query(
-    `SELECT * FROM form_results
-     WHERE post_id = ?
-     ORDER BY created_at DESC`,
-    [postId]
-  );
+  const { data, error } = await supabase
+    .from("form_results")
+    .select("*")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: false });
 
-  res.json(rows);
+  if (error) return res.status(500).json(error);
+
+  res.json(data);
 };
 
 /* =====================================================
@@ -140,16 +131,17 @@ export const getFormResultsByPost = async (req, res) => {
 export const getFormResultDetail = async (req, res) => {
   const { id } = req.params;
 
-  const [rows] = await pool.query(
-    `SELECT * FROM form_results WHERE id = ?`,
-    [id]
-  );
+  const { data, error } = await supabase
+    .from("form_results")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  if (!rows.length) {
+  if (error) {
     return res.status(404).json({ success: false });
   }
 
-  res.json(rows[0]);
+  res.json(data);
 };
 
 /* =====================================================
@@ -158,7 +150,12 @@ export const getFormResultDetail = async (req, res) => {
 export const deleteFormResult = async (req, res) => {
   const { id } = req.params;
 
-  await pool.query(`DELETE FROM form_results WHERE id = ?`, [id]);
+  const { error } = await supabase
+    .from("form_results")
+    .delete()
+    .eq("id", id);
+
+  if (error) return res.status(500).json(error);
 
   res.json({ success: true });
 };
